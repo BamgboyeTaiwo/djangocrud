@@ -1,7 +1,7 @@
 from django import forms
-from .models import Details
+from .models import Post
  
-class detailsform(forms.ModelForm):
+class Postform(forms.ModelForm):
     class Meta:
-        model=Details
+        model=Post
         fields="__all__"

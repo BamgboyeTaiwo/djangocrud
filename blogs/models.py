@@ -1,28 +1,57 @@
-from time import timezone
 from turtle import title
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
 
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.template.defaultfilters import slugify
+
 # Create your models here.
 
-class Details(models.Model):
-    name=models.CharField(max_length=100)
-    age=models.IntegerField()
-    address=models.TextField(max_length=255)
+# class Post(models.Model):
+#     name=models.CharField(max_length=100)
+#     age=models.IntegerField()
+#     address=models.TextField(max_length=255)
 
-class blogs():
+class Post(models.Model):
+    
+    STATUS_CHOICES = (
+        ("draft", "Draft"),
+        ("published", "Published")
+    )
 
-    title = models.CharField(max_length=200)
-    excerpt = models.TextField(null=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE,)
-    slug=models.SlugField(max_length=100, unique=True)
-    # published = models.DateTimeField(default=timezone.now)
+    # DB Fields
+    title = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=300, unique=True, editable=False)
+    author = models.ForeignKey(
+        get_user_model(), on_delete=models.CASCADE, related_name="blog_posts"
+    )
+    body = models.TextField()
 
-    def get_absolute_url(self):
-        return reverse('blog:single', args=[self.slug])
+    publish = models.DateTimeField(default=timezone.now)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    status = models.CharField(
+        max_length=10, choices=STATUS_CHOICES, default="draft"
+    )
+
+    class Meta:
+        ordering = ("-publish",)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+        pass 
 
     def __str__(self):
         return self.title
+    
+    def get_absolute_url(self):
+        return reverse("blog:post_detail", kwargs={"slug": self.slug})
+    
+
+
 
 
